@@ -1,0 +1,12 @@
+# ignore big stuff
+models/
+results/
+src/db/
+src/class_pictures/
+!src/db/misha_db/
+
+# ignore vs code
+setup_env/VSCodeUserSetup-x64-1.99.0.exe
+
+# ignore reference
+official*
