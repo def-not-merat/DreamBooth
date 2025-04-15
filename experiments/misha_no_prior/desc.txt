@@ -1,0 +1,22 @@
+batchsize = 1                           # dont touch, since it doesnt fit on GPU.............
+use_prior = [False, True][0]            # prior loss, needs the class img datasets to compare performance
+prior_scaler = 0
+weave_losses = [False, True][1]         # to increase memory efficency when using prior loss.
+                                        # applies prior loss and regular loss one at a time
+train_text = ["False","lora","True"][2]
+unet_use_lora = [False, True][0]
+rank = 50                              # lora rank
+adam8bit = [False,True][1]              # use 8bit adam
+total_train_steps = 250
+grad_accumilation = 1                   # accumulate gradients every x steps
+lr =  1e-4 if unet_use_lora else 5e-6   #lora uses bigger learning rates
+# lr = 1e-4
+resolution = 512
+class_of_obj = ["woman","dog"][1]                        
+
+
+
+
+
+
+2:51

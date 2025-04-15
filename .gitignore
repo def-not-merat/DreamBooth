@@ -1,12 +1,14 @@
-# ignore big stuff
-models/
+# ignore big and useless stuff
+experiments/laptop_*
+logs/
 results/
-src/db/
-src/class_pictures/
-!src/db/misha_db/
 
-# ignore vs code
-setup_env/VSCodeUserSetup-x64-1.99.0.exe
+# ignore all images training datas
+src/db/*
+src/class_pictures/*
+# except misha :)
+!src/db/misha_db/
+!src/db/misha_rembg_db/
 
 # ignore reference
 official*

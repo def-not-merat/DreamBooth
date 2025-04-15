@@ -1,0 +1,11 @@
+name: dbooth_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - jupyter
+  - python==3.11.11
+  - pip:
+    - -r pip_requirements.txt
+
+prefix: /home/parsa/miniconda3/envs/dbooth_env
