@@ -1,0 +1,97 @@
+batchsize = 1                           # dont touch, since it doesnt fit on GPU.............
+use_prior = [False, True][1]            # prior loss, needs the class img datasets to compare performance
+prior_scaler = 1.
+weave_losses = [False, True][1]         # to increase memory efficency when using prior loss.
+                                        # applies prior loss and regular loss one at a time
+train_text = ["False","lora","True"][2]
+unet_use_lora = [False, True][0]
+rank = 50                              # lora rank
+adam8bit = [False,True][1]              # use 8bit adam
+total_train_steps = 250
+grad_accumilation = 1                   # accumulate gradients every x steps
+lr =  1e-4 if unet_use_lora else 5e-6   #lora uses bigger learning rates
+# lr = 5e-6
+resolution = 512
+class_of_obj = ["woman","dog"][1]  
+
+
+
+Timer unit: 1e-07 s
+
+Total time: 529.367 s
+File: C:\Users\merat\AppData\Local\Temp\ipykernel_9524\618756271.py
+Function: to_profile at line 5
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+     5                                           def to_profile():
+     6                                           
+     7         1          7.0      7.0      0.0      grad_acc_counter = 0
+     8         1        315.0    315.0      0.0      total_epochs = int(total_train_steps/(len(dataloader)/grad_accumilation))
+     9         1       1310.0   1310.0      0.0      print(f'{"using prior class loss" if use_prior else ""}')
+    10         1        134.0    134.0      0.0      print(f'{"unet using lora" if unet_use_lora else "full unet training"}')
+    11         1        136.0    136.0      0.0      print(f'text training: {train_text}')
+    12         1        136.0    136.0      0.0      print(f'using {"8bit " if adam8bit else ""}adamw')
+    13         1        132.0    132.0      0.0      print(f'{"weaving losses" if weave_losses else ""}')
+    14         1        123.0    123.0      0.0      print(f'{total_train_steps} steps over {total_epochs} epochs')
+    15                                           
+    16         1          2.0      2.0      0.0      epoch = 0
+    17         1      41664.0  41664.0      0.0      pbar = tqdm(total=total_epochs)
+    18        42        252.0      6.0      0.0      while epoch<total_epochs:
+    19        41        129.0      3.1      0.0          epoch+=1
+    20        41        553.0     13.5      0.0          logs = {"epoch_loss":0., "epoch_prior_loss":0., "epoch_db_loss":0.}
+    21       287   80030766.0 278852.8      1.5          for step,batch in enumerate(dataloader):
+    22       246    8913872.0  36235.3      0.2              timesteps = torch.randint(0, scheduler.config.num_train_timesteps, (batchsize,), device=torch_device, dtype=torch.int64)
+    23                                           
+    24       246     958958.0   3898.2      0.0              batch = batch.to(torch_device)
+    25                                           
+    26       246       3624.0     14.7      0.0              if train_text != "False":
+    27       246   36038137.0 146496.5      0.7                  text_embeddings = text_encoder(text_inputs)[0]
+    28       246  809282625.0    3e+06     15.3              loss = train_feed_forward(batch, timesteps, text_embeddings) / grad_accumilation
+    29                                           
+    30       246       4648.0     18.9      0.0              if do_log:
+    31       246  795511047.0    3e+06     15.0                  logs["epoch_db_loss"] += loss.item()
+    32       246       6875.0     27.9      0.0              if weave_losses:
+    33       246  564549001.0    2e+06     10.7                  loss.backward()
+    34                                           
+    35       246       5263.0     21.4      0.0              if use_prior:
+    36       246   18066100.0  73439.4      0.3                  class_batch = next(iter(class_dataloader))
+    37       246   69565952.0 282788.4      1.3                  class_batch = class_batch.to(torch_device)
+    38                                           
+    39       246       4850.0     19.7      0.0                  if train_text != "False":
+    40       246   27938271.0 113570.2      0.5                      class_text_embeddings = text_encoder(class_text_inputs)[0]
+    41       246  816330518.0    3e+06     15.4                  prior_loss = train_feed_forward(class_batch, timesteps, class_text_embeddings) / grad_accumilation
+    42       246     171798.0    698.4      0.0                  prior_loss = prior_scaler * prior_loss 
+    43                                                           
+    44       246       2700.0     11.0      0.0                  if do_log:
+    45       246  797076609.0    3e+06     15.1                      logs["epoch_prior_loss"] += prior_loss.item()
+    46       246       6287.0     25.6      0.0                  if weave_losses:
+    47       246  697950585.0    3e+06     13.2                      prior_loss.backward()
+    48                                           
+    49       246     137661.0    559.6      0.0                  loss = loss + prior_loss
+    50                                           
+    51       246       4504.0     18.3      0.0              if not weave_losses:
+    52                                                           loss.backward()
+    53       246   49617940.0 201698.9      0.9              logs["epoch_loss"] += loss.item()
+    54                                           
+    55       246       3525.0     14.3      0.0              grad_acc_counter+=1
+    56       246       2367.0      9.6      0.0              if grad_acc_counter==grad_accumilation:
+    57       246       1106.0      4.5      0.0                  grad_acc_counter=0
+    58       246   15095408.0  61363.4      0.3                  torch.nn.utils.clip_grad_norm_(trainable_params, 1.0)
+    59       246  500866551.0    2e+06      9.5                  optim.step()
+    60       246      60540.0    246.1      0.0                  lr_scheduler.step()
+    61       246    4674522.0  19002.1      0.1                  optim.zero_grad()
+    62                                                   
+    63       164       1181.0      7.2      0.0          for k,v in logs.items():
+    64       123       9114.0     74.1      0.0              logs[k] = v*grad_accumilation/len(dataloader)
+    65                                           
+    66        41        173.0      4.2      0.0          if do_log:
+    67        41      38454.0    937.9      0.0              writer.add_scalar("loss/total_loss", logs["epoch_loss"],  epoch) 
+    68        41        160.0      3.9      0.0              if use_prior:
+    69        41      11116.0    271.1      0.0                  writer.add_scalar("loss/db_loss", logs["epoch_db_loss"],  epoch) 
+    70        41       8500.0    207.3      0.0                  writer.add_scalar("loss/prior_loss", logs["epoch_prior_loss"],  epoch) 
+    71        41     379214.0   9249.1      0.0          pbar.set_description(f"epoch: {epoch}/{total_epochs} mean loss: {logs['epoch_loss']} lr: {lr_scheduler.get_last_lr()[0]}")
+    72        41     283381.0   6911.7      0.0          pbar.update(1)
+    73                                           
+    74                                               
+    75         1      12526.0  12526.0      0.0      writer.close()

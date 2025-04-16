@@ -1,0 +1,58 @@
+both lora with 100:         40 000 000 trainable floats over 440
+just unet lora 100:         21 000 000 trainable floats over 256 tensors
+both lora with 50:          20 000 000 trainable floats over 440
+
+
+fulltrain:                  1 206 000 000 over 1058
+just full unet:             865 000 000 trainable floats over 686 tensors
+just full text:             340 000 000 trainable floats over 372 tensors
+
+full unet, lora 100 text:   885 000 000 over 870
+HAVE to use 8bit, no weave requiered, 14.3gb
+
+prior, no weave, regular adam, lora 10gb
+prior,  weave,  adam8, full 16gb
+
+over 250 steps, if everything fits, 5 min
+                if has to weave, 8 min
+
+
+768 with lora 200 adamw takes 20 min (15gb)
+
+
+
+8gb of gpu:
+unet full:
+can not be ran: tested with weave, 8bit, checkpoint
+notes: with weave it ran out of memory on prior inference
+
+
+unet lora
+text full
+can be BARELY run (if empty cuda cache everytime): weave, 8bit, checkpoint
+
+
+
+
+best lora:
+batchsize = 1                           # dont touch, since it doesnt fit on GPU.............
+use_prior = [False, True][1]            # prior loss, needs the class img datasets to compare performance
+prior_scaler = 1.                       # for prior loss
+weave_losses = [False, True][1]         # to make everything fit on memory, do 2 backprops
+                                        # (only when using prior loss)
+gradient_checkpointing = [False, True][0] # siiiiigh, if only i knew this exists sooner.... kinda makes weave_losses poitnless
+train_text = ["False","lora","True"][1] # how to train text encoder
+unet_use_lora = [False, True][1]
+rank = 200                              # lora rank (for both text and unet)
+adam8bit = [False,True][0]              # use 8bit adam 
+total_train_steps = 500                 # totol number of optim steps
+grad_accumilation = 1                   # accumulate gradients every x steps
+lr =  3e-5                              # lora uses bigger learning rates
+
+save_period=16                          # save every x epochs, if 0 dont save
+
+resolution = 512                        # 512 or 768 for v2-1 (if feeling genorous)
+class_of_obj = ["woman","dog"][1]                       
+
+if not use_prior:
+    weave_losses = False

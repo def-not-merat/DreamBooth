@@ -1,7 +1,7 @@
 # ignore big and useless stuff
 experiments/laptop_*
+experiments/misha_lora_best/*
 logs/
-results/
 
 # ignore all images training datas
 src/db/*
